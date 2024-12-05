@@ -8,7 +8,6 @@ import { QuizzesModule } from './Backend/quizzes/quizzes.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { NoteModule } from './Backend/note/note.module';
 import { RecommendationModule } from './Backend/recommendation/recommendation.module';
-import { AuthenticationLogModule } from './Backend/authentication-log/authentication-log.module';
 import { ConfigurationModule } from './Backend/configuration/configuration.module';
 import { NotificationModule } from './Backend/notification/notification.module';
 import { FeedbackModule } from './Backend/feedback/feedback.module';
@@ -19,6 +18,7 @@ import { ChathistoryModule } from './Backend/chathistory/chathistory.module';
 import { InstructorModule } from 'src/Backend/instructor/instructor.module';
 import { AdminsModule } from './Backend/admins/admins.module';
 import { LogsModule } from './Backend/logs/logs.module';
+import { ProgressModule } from './Backend/progress/progress.module';
 
 @Module({
   imports: [
@@ -40,7 +40,6 @@ import { LogsModule } from './Backend/logs/logs.module';
     QuizzesModule,
     NoteModule,
     RecommendationModule,
-    AuthenticationLogModule,
     ConfigurationModule,
     NotificationModule,
     FeedbackModule,
@@ -53,7 +52,8 @@ import { LogsModule } from './Backend/logs/logs.module';
       signOptions: { expiresIn: '1h' }, // Token expiration time
     }),
     InstructorModule,
-    AdminsModule
+    AdminsModule,
+    ProgressModule
   ],
   controllers: [AppController],
   providers: [AppService],
