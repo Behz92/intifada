@@ -79,7 +79,7 @@ export class AuthService {
 
       
       // Generate JWT token
-      const payload = { id: user._id, name: user.name, email: user.email, role };
+      const payload = { id: user._id, name: user.name, email: user.email, role: user.role };
       const accessToken = jwt.sign(payload, process.env.JWT_SECRET, {
         expiresIn: '1h',
       });
@@ -90,4 +90,22 @@ export class AuthService {
       throw new BadRequestException('Login failed');
     }
   }
+
+  // Method to get data for the admin dashboard
+  async getDashboard(): Promise<string> {
+
+    // Simulated response data for the sake of example
+    const dashboardData = {
+      message: 'Welcome to the Admin Dashboard!',
+      statistics: {
+        totalUsers: 1200,
+        totalCourses: 50,
+        activeAdmins: 5,
+      },
+    };
+
+    // Return or process the data as needed
+    return JSON.stringify(dashboardData); // Return as JSON string for simplicity
+  }
+
 }

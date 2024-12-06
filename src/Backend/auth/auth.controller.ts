@@ -1,6 +1,7 @@
-import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, UseGuards, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service';
-
+import { Roles } from './decorators/roles.decorator'; 
+import { AuthorizationGuard } from './guards/authorization.guards';
 
 @Controller('auth')
 export class AuthController {
@@ -21,4 +22,11 @@ export class AuthController {
     const { email, password, role } = body;
     return await this.authService.login(email, password, role);
   }
+
+  @UseGuards(AuthorizationGuard)
+    @Get('dashboard')
+    @Roles('admin') // Only admin users can access this route
+    getDashboard() {
+      return 'Welcome to the admin dashboard!';
+    }
 }

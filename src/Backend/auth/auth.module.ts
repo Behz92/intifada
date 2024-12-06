@@ -10,6 +10,7 @@ import { admin, AdminSchema } from 'src/schemas/admin.schema';
 import { Instructor, InstructorSchema } from 'src/schemas/instructor.schema';
 import { InstructorModule } from '../instructor/instructor.module';
 import { AdminsModule } from '../admins/admins.module';
+import { JwtStrategy } from './jwt.strategy';
 
 @Module({
   imports: [
@@ -25,13 +26,14 @@ import { AdminsModule } from '../admins/admins.module';
     forwardRef(() => AdminsModule), // Resolves circular dependency if any
     forwardRef(() => UsersModule),
     forwardRef(() => InstructorModule),    PassportModule,
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret: 'yourSecretKey', // Replace with an environment variable
       signOptions: { expiresIn: '1h' }, // Set token expiration
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService],
-  exports: [AuthService],
+  providers: [AuthService, JwtStrategy],
+  exports: [AuthService, JwtStrategy],
 })
 export class AuthModule {}
