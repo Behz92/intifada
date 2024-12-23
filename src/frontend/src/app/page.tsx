@@ -49,6 +49,13 @@ export default function Home() {
       intructor_name: 'Dr.Ali 3elwa',
     },
     {
+      name: 'Ethical Hacking',
+      category: 'Security',
+      price: 600,
+      image: '/assets/images/Prog_2.jpg',
+      intructor_name: 'Dr.Charl',
+    },
+    {
       name: 'English Advanced',
       category: 'English',
       price: 240,
@@ -737,9 +744,68 @@ export default function Home() {
                 </div>
               </div>
             </div>
+            <div className="col-lg-3 col-md-6">
+              <div className="team-member">
+                <div className="main-content">
+                  <img src="assets\images\3elwa.jpg" alt="" />
+                  <span className="category">English Instructor</span>
+                  <h4>Ali Ayman</h4>
+                  <ul className="social-icons">
+                    <li>
+                      <a
+                        href="https://www.facebook.com/ali.ayman.9843/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <i className="fab fa-facebook" />
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        href="https://www.instagram.com/aliayman16/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <i className="fab fa-instagram" />
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div className="col-lg-3 col-md-6">
+              <div className="team-member">
+                <div className="main-content">
+                  <img src="assets\images\Charl.JPG" alt="" />
+                  <span className="category">Ethical Hacking Instructor</span>
+                  <h4>Karim Charl</h4>
+                  <ul className="social-icons">
+                    <li>
+                      <a
+                        href="https://www.facebook.com/karim.charl.9/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <i className="fab fa-facebook" />
+                      </a>
+                    </li>
+                    <li>
+                      <a
+                        href="https://www.instagram.com/karimcharl/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <i className="fab fa-instagram" />
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
       <div className="section testimonials">
         <div className="container">
           <div className="row">
@@ -781,6 +847,7 @@ export default function Home() {
                     <h4>Dr.Boudy Marley</h4>
                   </div>
                 </div>
+
                 <div className="item">
                   <p>
                     “
@@ -794,6 +861,7 @@ export default function Home() {
                     <strong>fluency and comprehension</strong> to open new
                     opportunities.”
                   </p>
+
                   <div className="author">
                     <img src="/assets/images/Bahaa.jpeg" alt="" />
                     <span className="category">English Instructor</span>
@@ -827,6 +895,7 @@ export default function Home() {
           </div>
         </div>
       </div>
+
       <div className="section events" id="events">
         <div className="container">
           <div className="row" onClick={() => handleCourseClick()}>
