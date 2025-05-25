@@ -213,20 +213,51 @@ export class UsersService {
 
     return result;
   }
-  async getCertificateImageUrl(studentName: string, courseTitle: string): Promise<User> {
+  async getCertificateImageUrl(
+    studentName: string,
+    courseTitle: string,
+  ): Promise<User> {
     const user = await this.userModel.findOne({
       name: studentName,
-     
     });
 
     if (!user) {
-      throw new NotFoundException(`No certificate found for ${studentName} in ${courseTitle}`);
+      throw new NotFoundException(
+        `No certificate found for ${studentName} in ${courseTitle}`,
+      );
     }
-
-    
-    
 
     return user;
   }
-}
+  async joinCourse(userEmail: string, courseTitle: string): Promise<any> {
+    const user = await this.userModel.findOne({ email: userEmail });
+    if (!user) throw new NotFoundException('User not found');
 
+    const course = await this.courseModel.findOne({ title: courseTitle });
+    if (!course) throw new NotFoundException('Course not found');
+
+    if (!course.Point_Based) {
+      throw new BadRequestException('This course is not point-based');
+    }
+
+    if (user.acceptedCourses.includes(courseTitle)) {
+      throw new BadRequestException('You have already joined this course');
+    }
+
+    // Add course and update user
+    user.acceptedCourses.push(courseTitle);
+    user.courseScores.push({ courseTitle, score: 0 });
+    user.Points -= 100;
+    user.Notifiction.push(
+      `🎉 You joined the point-based course: ${courseTitle}. 200 points have been deducted.`,
+    );
+
+    await user.save();
+
+    return {
+      message: `Successfully joined ${courseTitle}`,
+      remainingPoints: user.Points,
+      acceptedCourses: user.acceptedCourses,
+    };
+  }
+}

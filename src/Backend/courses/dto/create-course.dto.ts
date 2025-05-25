@@ -6,6 +6,7 @@ import {
   IsNumber,
   IsUrl,
   IsEnum,
+  IsBoolean,
 } from 'class-validator';
 
 export class CreateCourseDto {
@@ -58,4 +59,8 @@ export class CreateCourseDto {
   @IsNotEmpty()
   @IsUrl()
   image: string; // New field
+
+  @IsBoolean()
+  @IsOptional()
+  Point_Based?: boolean; // New field, optional
 }

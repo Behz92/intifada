@@ -82,24 +82,23 @@ export class CoursesService {
       if (!courseId) {
         throw new Error('Invalid courseId provided.');
       }
-  
+
       const restoredCourse = await this.courseModel.findOneAndUpdate(
         { courseId, isArchived: true }, // Ensure the course is currently archived
         { isArchived: false }, // Update to mark as active
-        { new: true } // Return the updated document
+        { new: true }, // Return the updated document
       );
-  
+
       if (!restoredCourse) {
         throw new Error('Course not found or is already active.');
       }
-  
+
       return restoredCourse;
     } catch (error) {
       console.error('Error restoring course:', error.message);
       throw new Error('Error restoring course. Please try again later.');
     }
   }
-  
 
   //Delete outdated Course
   async DeleteCourse(title: string): Promise<Course> {
@@ -141,7 +140,16 @@ export class CoursesService {
     return this.courseModel.find();
   }
   async getAllCoursesTitle(): Promise<string[]> {
-    const courses = await this.courseModel.find().select('title -_id').exec();
+    const courses = await this.courseModel
+      .find({
+        $or: [
+          { Point_Based: { $ne: true } },
+          { Point_Based: { $exists: false } },
+        ],
+      })
+      .select('title -_id')
+      .exec();
+
     return courses.map((course) => course.title);
   }
   async getAllCoursesByTitle(title: string): Promise<Course> {

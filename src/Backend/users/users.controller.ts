@@ -30,7 +30,7 @@ export class UsersController {
     private readonly userService: UsersService,
     private readonly logsService: LogsService,
     private readonly feedbackService: FeedbackService,
-  ) { }
+  ) {}
 
   // Register a new user
   @Post('register')
@@ -51,7 +51,7 @@ export class UsersController {
   async login(
     @Body() { email, passwordHash }: { email: string; passwordHash: string },
   ) {
-    let log = "failed"; // Default to "failed"
+    let log = 'failed'; // Default to "failed"
 
     try {
       // Attempt to log in
@@ -138,8 +138,6 @@ export class UsersController {
     }
   }
 
-
-
   @UseGuards(AuthorizationGuard)
   @Post('content')
   @Roles('student')
@@ -170,11 +168,31 @@ export class UsersController {
     @Param('courseTitle') courseTitle: string,
   ): Promise<User> {
     if (!studentName || !courseTitle) {
-      throw new BadRequestException('Both studentName and courseTitle are required.');
+      throw new BadRequestException(
+        'Both studentName and courseTitle are required.',
+      );
     }
 
-   return await this.userService.getCertificateImageUrl(studentName, courseTitle);
-    
+    return await this.userService.getCertificateImageUrl(
+      studentName,
+      courseTitle,
+    );
+  }
+  @UseGuards(AuthorizationGuard)
+  @Post('join-course')
+  @Roles('student')
+  async joinPointBasedCourse(
+    @Body() { email, courseTitle }: { email: string; courseTitle: string },
+  ) {
+    if (!email || !courseTitle) {
+      throw new BadRequestException('Email and courseTitle are required');
+    }
+
+    try {
+      const result = await this.userService.joinCourse(email, courseTitle);
+      return result;
+    } catch (error) {
+      throw new BadRequestException(error.message);
+    }
   }
 }
-

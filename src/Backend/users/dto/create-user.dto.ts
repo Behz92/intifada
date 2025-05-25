@@ -57,4 +57,9 @@ export class CreateUserDto {
   @IsNumber()
   @IsPositive()
   score?: number; // Default is 0, but user can provide their own score
+
+  @IsOptional() // Score is optional and defaults to 0
+  @IsNumber()
+  @IsPositive()
+  Points?: number; // Default is 0, but user can provide their own score
 }

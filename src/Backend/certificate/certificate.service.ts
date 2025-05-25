@@ -7,23 +7,21 @@ import { User } from 'src/schemas/user.schema';
 import { Model } from 'mongoose';
 @Injectable()
 export class CertificateService {
+  constructor(
+    @InjectModel(User.name, 'eLearningDB')
+    private readonly userModel: Model<User>,
+  ) {}
 
-    constructor(
-        @InjectModel(User.name, 'eLearningDB')
-        private readonly userModel: Model<User>,
-      ) {}
+  async generateCertificate(data: {
+    participant: string;
+    institute: string;
+    grade: string;
+    course: string;
+  }): Promise<string> {
+    const { participant, institute, grade, course } = data;
 
-
-    async generateCertificate(data: {
-        participant: string;
-        institute: string;
-        grade: string;
-        course: string;
-      }): Promise<string> {
-        const { participant, institute, grade, course } = data;
-    
-        // Define the HTML content
-        const htmlContent = `
+    // Define the HTML content
+    const htmlContent = `
           <html>
           <head>
             <title>Certificate</title>
@@ -72,42 +70,47 @@ export class CertificateService {
           </body>
           </html>
         `;
-    
-        // Launch Puppeteer
-        const browser = await puppeteer.launch();
-        const page = await browser.newPage();
-    
-        // Set the HTML content
-        await page.setContent(htmlContent);
-    
-        // Take a screenshot
-        const screenshotPath = path.join(__dirname, 'certificate.png');
-        await page.screenshot({ path: screenshotPath, fullPage: true });
-    
-        await browser.close();
-    
-        // Optionally, save the image to a database or cloud storage
-        const imageBuffer = fs.readFileSync(screenshotPath);
-        // Save `imageBuffer` to your database
-    
-        return screenshotPath; // Return the file path or URL
-      }
 
-      async addCertificate(name: string, courseTitle: string, certificateImageUrl: string) {
-        const user = await this.userModel.findOne({ name: name });
-        if (!user) {
-          throw new NotFoundException('User not found');
-        }
-    
-        // Add certificate to the user's certificates array
-        user.certificates.push({
-          name,
-          courseTitle,
-          certificateImageUrl, // Assuming this is base64 or a path to a file
-        });
-    
-        await user.save();
-        return { message: 'Certificate added successfully' };
+    // Launch Puppeteer
+    const browser = await puppeteer.launch();
+    const page = await browser.newPage();
+
+    // Set the HTML content
+    await page.setContent(htmlContent);
+
+    // Take a screenshot
+    const screenshotPath = path.join(__dirname, 'certificate.png');
+    await page.screenshot({ path: screenshotPath, fullPage: true });
+
+    await browser.close();
+
+    // Optionally, save the image to a database or cloud storage
+    const imageBuffer = fs.readFileSync(screenshotPath);
+    // Save `imageBuffer` to your database
+
+    return screenshotPath; // Return the file path or URL
+  }
+
+  async addCertificate(
+    name: string,
+    courseTitle: string,
+    certificateImageUrl: string,
+  ) {
+    const user = await this.userModel.findOne({ name: name });
+    if (!user) {
+      throw new NotFoundException('User not found');
     }
-    
+
+    // Add certificate to the user's certificates array
+    user.certificates.push({
+      name,
+      courseTitle,
+      certificateImageUrl, // Assuming this is base64 or a path to a file
+    });
+    // ✅ Add 100 points to the user
+    user.Points = (user.Points || 0) + 100;
+
+    await user.save();
+    return { message: 'Certificate added successfully' };
+  }
 }

@@ -52,13 +52,15 @@ export class InstructorService {
     return instructor;
   }
 
-
-  async deleteCourse(instructorEmail: string, courseTitle: string): Promise<void> {
+  async deleteCourse(
+    instructorEmail: string,
+    courseTitle: string,
+  ): Promise<void> {
     const result = await this.courseModel.deleteOne({
       instructormail: instructorEmail,
       title: courseTitle,
     });
-  
+
     if (result.deletedCount === 0) {
       throw new NotFoundException(
         `Course with title "${courseTitle}" not found for instructor "${instructorEmail}".`,
@@ -142,19 +144,21 @@ export class InstructorService {
     }
   }
 
-  async getStudentsForInstructorByEmail(instructorEmail: string): Promise<User[]> {
+  async getStudentsForInstructorByEmail(
+    instructorEmail: string,
+  ): Promise<User[]> {
     // Find the instructor by email
-    const instructor = await this.InstructorModel.findOne({ email: instructorEmail }).exec();
+    const instructor = await this.InstructorModel.findOne({
+      email: instructorEmail,
+    }).exec();
     if (!instructor) {
       throw new Error('Instructor not found');
     }
 
     // Find all students whose acceptedCourses intersect with the instructor's Teach_Courses
-    const students = await this.UserModel
-      .find({
-        acceptedCourses: { $in: instructor.Teach_Courses },
-      })
-      .exec();
+    const students = await this.UserModel.find({
+      acceptedCourses: { $in: instructor.Teach_Courses },
+    }).exec();
 
     return students;
   }
@@ -429,25 +433,24 @@ export class InstructorService {
   // Method to get all courses taught by an instructor
   async getCoursesByInstructor(email: string): Promise<any[]> {
     console.log(`Searching for instructor with email: ${email}`);
-    
+
     const instructor = await this.InstructorModel.findOne({
       email: { $regex: new RegExp(`^${email}$`, 'i') },
     }).exec();
-    
-    
+
     if (!instructor) {
       console.log(`Instructor not found for email: ${email}`);
       throw new NotFoundException(`Instructor with email ${email} not found`);
     }
-  
+
     console.log(`Found instructor: ${instructor.name}`);
-  
+
     const courses = await this.courseModel
       .find({ title: { $in: instructor.Teach_Courses } })
       .exec();
-  
+
     console.log(`Courses found: ${courses.length}`);
-    
+
     return courses.map((course) => ({
       title: course.title,
       instructor_name: instructor.name,
@@ -456,7 +459,6 @@ export class InstructorService {
       category: course.category,
     }));
   }
-  
 
   async findCourseByTitle(title: string): Promise<{
     course: {
@@ -515,7 +517,7 @@ export class InstructorService {
 
     const updatedStudents = students.map((student) => ({
       ...student,
-      profilePictureUrl: student.profilePictureUrl
+      profilePictureUrl: student.profilePictureUrl,
     }));
 
     return { students: updatedStudents };
@@ -545,65 +547,74 @@ export class InstructorService {
   async findInstructorById(instructorId: string): Promise<Instructor> {
     // Find the instructor by their ID
     const instructor = await this.InstructorModel.findById(instructorId).exec();
-  
+
     if (!instructor) {
-      throw new NotFoundException(`Instructor with ID ${instructorId} not found`);
+      throw new NotFoundException(
+        `Instructor with ID ${instructorId} not found`,
+      );
     }
-  
+
     return instructor;
   }
 
+  // Method to find an instructor by their Email
+  async findInstructorByEmail(instructorEmail: string): Promise<Instructor> {
+    // Find the instructor by their Email
+    const instructor = await this.InstructorModel.findOne({
+      instructorEmail,
+    }).exec();
 
-// Method to find an instructor by their Email
-async findInstructorByEmail(instructorEmail: string): Promise<Instructor> {
-  // Find the instructor by their Email
-  const instructor = await this.InstructorModel.findOne({instructorEmail}).exec();
+    if (!instructor) {
+      throw new NotFoundException(
+        `Instructor with email ${instructorEmail} not found`,
+      );
+    }
 
-  if (!instructor) {
-    throw new NotFoundException(`Instructor with email ${instructorEmail} not found`);
+    return instructor;
   }
 
-  return instructor;
-}
+  async sendNotificationToStudentsByEmail(
+    instructorEmail: string,
+    courseTitle: string,
+    notificationMessage: string,
+  ): Promise<any> {
+    // Change return type to any or a specific object type if you prefer
+    // Find the instructor by email
+    const instructor = await this.InstructorModel.findOne({
+      email: instructorEmail,
+    });
+    if (!instructor) {
+      throw new NotFoundException('Instructor not found.');
+    }
 
+    // Check if the instructor teaches the course
+    if (!instructor.Teach_Courses.includes(courseTitle)) {
+      throw new BadRequestException('Instructor does not teach this course.');
+    }
 
-async sendNotificationToStudentsByEmail(
-  instructorEmail: string,
-  courseTitle: string,
-  notificationMessage: string,
-): Promise<any> {  // Change return type to any or a specific object type if you prefer
-  // Find the instructor by email
-  const instructor = await this.InstructorModel.findOne({ email: instructorEmail });
-  if (!instructor) {
-    throw new NotFoundException('Instructor not found.');
-  }
+    // Find all students enrolled in the specified course
+    const students = await this.UserModel.find(
+      { acceptedCourses: courseTitle },
+      'email',
+    );
+    if (!students || students.length === 0) {
+      throw new NotFoundException('No students found for this course.');
+    }
 
-  // Check if the instructor teaches the course
-  if (!instructor.Teach_Courses.includes(courseTitle)) {
-    throw new BadRequestException('Instructor does not teach this course.');
-  }
-
-  // Find all students enrolled in the specified course
-  const students = await this.UserModel.find({ acceptedCourses: courseTitle }, 'email');
-  if (!students || students.length === 0) {
-    throw new NotFoundException('No students found for this course.');
-  }
-
-  // Send notification to all students by their email
-  const studentEmails = students.map((student) => student.email);
-  await Promise.all(
-    studentEmails.map((email) =>
-      this.UserModel.updateOne(
-        { email }, // Use email to find the student
-        { $push: { Notifiction: notificationMessage } },
+    // Send notification to all students by their email
+    const studentEmails = students.map((student) => student.email);
+    await Promise.all(
+      studentEmails.map((email) =>
+        this.UserModel.updateOne(
+          { email }, // Use email to find the student
+          { $push: { Notifiction: notificationMessage } },
+        ),
       ),
-    ),
-  );
+    );
 
-  // Return a structured JSON response
-  return { message: `Notification sent to all students in the course "${courseTitle}".` };
-}
-
-
-
+    // Return a structured JSON response
+    return {
+      message: `Notification sent to all students in the course "${courseTitle}".`,
+    };
+  }
 }
