@@ -22,6 +22,7 @@ interface Course {
   notes: string[]; // Array of note IDs or content (you can adjust depending on the structure of the notes)
   price: number;
   image: string; // URL or path to the course image
+  Point_Based: boolean;
 }
 interface Recommendation {
   title: string; // Title of the recommended course
@@ -31,14 +32,13 @@ interface Recommendation {
   imageUrl?: string; // Image URL for the recommended course (optional)
 }
 
-
-
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeCategory, setActiveCategory] = React.useState('All');
   const [userData, setUserData] = useState<any>(null);
   const [appliedCourses, setAppliedCourses] = useState<Course[]>([]);
   const [acceptedCourses, setAcceptedCourses] = useState<Course[]>([]);
+  const [Point_BasedCourses, SetPoint_BasedCourses] = useState<Course[]>([]);
   const [Courses, setCourses] = useState<Course[]>([]);
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
 
@@ -117,7 +117,9 @@ export default function Home() {
       );
 
       if (!response.ok) {
-        throw new Error(`Failed to fetch recommendations: ${response.statusText}`);
+        throw new Error(
+          `Failed to fetch recommendations: ${response.statusText}`,
+        );
       }
 
       const data = await response.json();
@@ -138,7 +140,9 @@ export default function Home() {
       );
 
       if (!response.ok) {
-        throw new Error(`Failed to generate recommendations: ${response.statusText}`);
+        throw new Error(
+          `Failed to generate recommendations: ${response.statusText}`,
+        );
       }
 
       const data = await response.json();
@@ -153,15 +157,15 @@ export default function Home() {
     activeCategory === 'All'
       ? appliedCourses
       : appliedCourses.filter(
-        (appliedCourses) => appliedCourses.category === activeCategory,
-      );
+          (appliedCourses) => appliedCourses.category === activeCategory,
+        );
   // Filter courses based on the active category
   const filteredAcceptedCourses =
     activeCategory === 'All'
       ? acceptedCourses
       : acceptedCourses.filter(
-        (acceptedCourses) => acceptedCourses.category === activeCategory,
-      );
+          (acceptedCourses) => acceptedCourses.category === activeCategory,
+        );
 
   useEffect(() => {
     const initialize = async () => {
@@ -195,8 +199,15 @@ export default function Home() {
               updatedUser?.acceptedCourses.includes(course.title),
             );
 
+            const Point_BasedCourses = Coursat.filter(
+              (course) =>
+                course.Point_Based === true &&
+                !userAcceptedCourses.some((c) => c.title === course.title),
+            );
+
             setAppliedCourses(userAppliedCourses);
             setAcceptedCourses(userAcceptedCourses);
+            SetPoint_BasedCourses(Point_BasedCourses);
           } catch (error) {
             console.error('Error fetching user details:', error);
           }
@@ -248,8 +259,52 @@ export default function Home() {
       throw error; // Propagate the error for the caller to handle
     }
   };
+  const handleJoinCourse = async (courseTitle: string) => {
+    const token = sessionStorage.getItem('authToken');
+    const user = sessionStorage.getItem('userData');
 
-  const getCourses = async (user: User) => { };
+    if (!token || !user) {
+      alert('User not authenticated');
+      router.push('/login');
+      return;
+    }
+
+    const { email } = JSON.parse(user);
+
+    try {
+      const response = await fetch(`http://localhost:3000/users/join-course`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          email,
+          courseTitle,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to join course');
+      }
+
+      alert(data.message);
+
+      // Re-fetch user data and accepted courses
+      const updatedUser = await fetchUserDetails(email, token);
+      const updatedAccepted = Courses.filter((course) =>
+        updatedUser.acceptedCourses.includes(course.title),
+      );
+      setAcceptedCourses(updatedAccepted);
+      setUserData(updatedUser);
+    } catch (error: any) {
+      alert(error.message);
+    }
+  };
+
+  const getCourses = async (user: User) => {};
 
   return (
     <>
@@ -342,38 +397,50 @@ export default function Home() {
                   </li>
                   <li>
                     <Link href="/User_Home/Notification">
-                      <i className="fas fa-bell"></i>{' '}
-                      {/* This is the notification bell icon */}
+                      <i className="fas fa-bell"></i>
                     </Link>
                   </li>
-                  <li>
+
+                  {/* ✅ Profile + Points */}
+                  <li
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                    }}
+                  >
                     <Link href="/User_Home/Profile">
-                      {userData?.profilePictureUrl ? (
-                        <img
-                          src={userData.profilePictureUrl}
-                          alt="Profile"
-                          style={{
-                            width: '90px',
-                            height: '90px',
-                            borderRadius: '50%',
-                            objectFit: 'cover',
-                          }}
-                        />
-                      ) : (
-                        <img
-                          src={'/assets/images/Default.jpg'}
-                          alt="Profile"
-                          style={{
-                            width: '90px',
-                            height: '90px',
-                            borderRadius: '50%',
-                            objectFit: 'cover',
-                          }}
-                        />
-                      )}
+                      <img
+                        src={
+                          userData?.profilePictureUrl ||
+                          '/assets/images/Default.jpg'
+                        }
+                        alt="Profile"
+                        style={{
+                          width: '60px',
+                          height: '60px',
+                          borderRadius: '50%',
+                          objectFit: 'cover',
+                        }}
+                      />
                     </Link>
+
+                    {/* ✅ Points with icon */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        color: 'white',
+                        fontWeight: 'bold',
+                        fontSize: '16px',
+                      }}
+                    >
+                      <span style={{ marginRight: '4px' }}>⭐</span>
+                      <span>{userData?.Points ?? 0} pts</span>
+                    </div>
                   </li>
                 </ul>
+
                 <a className="menu-trigger">
                   <span>Menu</span>
                 </a>
@@ -536,10 +603,13 @@ export default function Home() {
                 <div className="main-content">
                   <h4>Discussion Forum</h4>
                   <p>
-                    Join discussion Forums to start discussions with your peers and Instructors.
+                    Join discussion Forums to start discussions with your peers
+                    and Instructors.
                   </p>
                   <div className="main-button">
-                    <a href="/User_Home/DiscussionForum/pages/forums">Join Discussion Forums</a>
+                    <a href="/User_Home/DiscussionForum/pages/forums">
+                      Join Discussion Forums
+                    </a>
                   </div>
                 </div>
               </div>
@@ -884,6 +954,156 @@ export default function Home() {
           </div>
         </div>
       </div>
+      {/* Want  A Space here  */}
+      <div
+        style={{
+          height: '500px',
+          backgroundColor: 'white',
+          marginTop: '30px',
+          marginBottom: '30px',
+        }}
+      ></div>
+      <div className="section courses" id="courses">
+        <div className="container">
+          <div className="row">
+            <div className="col-lg-12 text-center">
+              <div className="section-heading">
+                <h6>Your Courses</h6>
+                <h2>Point Based Courses</h2>
+              </div>
+            </div>
+          </div>
+          {/* -------------------------------------------------------------------------------*/}
+          {/* Course Categories Filter */}
+          <ul className="event_filter">
+            <li>
+              <a
+                className={activeCategory === 'All' ? 'is_active' : ''}
+                href="#!"
+                onClick={() => setActiveCategory('All')}
+              >
+                Show All
+              </a>
+            </li>
+            <li>
+              <a
+                className={activeCategory === 'Data Science' ? 'is_active' : ''}
+                href="#!"
+                onClick={() => setActiveCategory('Data Science')}
+              >
+                Data Science
+              </a>
+            </li>
+            <li>
+              <a
+                className={activeCategory === 'Programming' ? 'is_active' : ''}
+                href="#!"
+                onClick={() => setActiveCategory('Programming')}
+              >
+                Programming
+              </a>
+            </li>
+            <li>
+              <a
+                className={activeCategory === 'English' ? 'is_active' : ''}
+                href="#!"
+                onClick={() => setActiveCategory('English')}
+              >
+                English
+              </a>
+            </li>
+          </ul>
+
+          {/* 📌 Display Point-Based Courses */}
+          <div className="row event_box">
+            {Point_BasedCourses.length > 0 ? (
+              Point_BasedCourses.map((course, index) => {
+                const hasEnoughPoints = (userData?.Points || 0) >= 100;
+
+                return (
+                  <div
+                    key={index}
+                    className="col-lg-4 col-md-6 align-self-center mb-30 event_outer"
+                  >
+                    <div className="events_item">
+                      <div className="thumb position-relative">
+                        <a
+                          onClick={() =>
+                            hasEnoughPoints &&
+                            handleCourseTitleClick(course.title)
+                          }
+                          style={{
+                            cursor: hasEnoughPoints ? 'pointer' : 'not-allowed',
+                          }}
+                        >
+                          <img
+                            src={course.image}
+                            alt={course.title}
+                            style={{
+                              filter: hasEnoughPoints
+                                ? 'none'
+                                : 'grayscale(80%)',
+                              opacity: hasEnoughPoints ? 1 : 0.6,
+                            }}
+                          />
+                          {!hasEnoughPoints && (
+                            <div
+                              className="lock-overlay"
+                              style={{
+                                position: 'absolute',
+                                bottom: '10px',
+                                left: '10px',
+                                backgroundColor: 'rgba(0,0,0,0.6)',
+                                padding: '6px 12px',
+                                borderRadius: '8px',
+                                color: 'white',
+                                fontSize: '14px',
+                                fontWeight: 'bold',
+                              }}
+                            >
+                              🔒 Requires 200 pts
+                            </div>
+                          )}
+                        </a>
+                        <span className="category">{course.category}</span>
+                        <span className="price">
+                          <h6>
+                            <em>$</em>
+                            {course.price}
+                          </h6>
+                        </span>
+                      </div>
+                      <div className="down-content">
+                        <span className="author">{course.instructorName}</span>
+                        <h4>{course.title}</h4>
+                        {hasEnoughPoints ? (
+                          <button
+                            onClick={() => handleJoinCourse(course.title)}
+                            className="btn btn-success mt-2"
+                          >
+                            Join Course
+                          </button>
+                        ) : (
+                          <p className="text-danger mt-2">
+                            Earn more points to unlock
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="col-12 text-center">
+                <p className="waiting-message">
+                  No point-based courses available.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       <div className="section fun-facts">
         <div className="container">
           <div className="row">
@@ -1225,52 +1445,60 @@ export default function Home() {
       </div>
       <div className="section events" id="events">
         <div className="container">
-        <div className="row">
-  <div className="col-lg-12 text-center">
-    <div className="section-heading">
-      <h6>Schedule</h6>
-      <h2>Recommendation Courses</h2>
-    </div>
-  </div>
-  
-  {recommendations.map((recommendation, index) => (
-    <div key={index} className="col-lg-12 col-md-6">
-      <div className="item">
-        <div className="row">
-          <div className="col-lg-3">
-            <div className="image">
-              <img src={recommendation.imageUrl || "/assets/images/default_image.jpg"} alt={recommendation.title} />
+          <div className="row">
+            <div className="col-lg-12 text-center">
+              <div className="section-heading">
+                <h6>Schedule</h6>
+                <h2>Recommendation Courses</h2>
+              </div>
             </div>
-          </div>
-          <div className="col-lg-9">
-            <ul>
-              <li>
-                <span className="category">{recommendation.category}</span>
-                <h4>{recommendation.title}</h4>
-              </li>
-              <li>
-                <span>Date:</span>
-                <h6>{new Date().toLocaleDateString()}</h6> {/* You can update this to the actual date for each recommendation */}
-              </li>
-              <li>
-                <span>Duration:</span>
-                <h6>{recommendation.creditHours} Hours</h6>
-              </li>
-              <li>
-                <span>Price:</span>
-                <h6>${recommendation.price}</h6>
-              </li>
-            </ul>
-            <a href="#">
-              <i className="fa fa-angle-right" />
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-  ))}
-</div>
 
+            {recommendations.map((recommendation, index) => (
+              <div key={index} className="col-lg-12 col-md-6">
+                <div className="item">
+                  <div className="row">
+                    <div className="col-lg-3">
+                      <div className="image">
+                        <img
+                          src={
+                            recommendation.imageUrl ||
+                            '/assets/images/default_image.jpg'
+                          }
+                          alt={recommendation.title}
+                        />
+                      </div>
+                    </div>
+                    <div className="col-lg-9">
+                      <ul>
+                        <li>
+                          <span className="category">
+                            {recommendation.category}
+                          </span>
+                          <h4>{recommendation.title}</h4>
+                        </li>
+                        <li>
+                          <span>Date:</span>
+                          <h6>{new Date().toLocaleDateString()}</h6>{' '}
+                          {/* You can update this to the actual date for each recommendation */}
+                        </li>
+                        <li>
+                          <span>Duration:</span>
+                          <h6>{recommendation.creditHours} Hours</h6>
+                        </li>
+                        <li>
+                          <span>Price:</span>
+                          <h6>${recommendation.price}</h6>
+                        </li>
+                      </ul>
+                      <a href="#">
+                        <i className="fa fa-angle-right" />
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
       {/* <div className="contact-us section" id="contact">

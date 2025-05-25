@@ -12,10 +12,9 @@ export class admin extends Document {
 
   @Prop({ required: true })
   passwordHash: string;
-  
+
   // Optional fields
   @Prop({ required: false })
   profilePictureUrl?: string;
-
 }
 export const AdminSchema = SchemaFactory.createForClass(admin);

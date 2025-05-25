@@ -32,13 +32,13 @@ import { ReplyModule } from './Backend/replies/reply.module';
 @Module({
   imports: [
     MongooseModule.forRoot(
-      'mongodb://Behz_92:Behz_9204@intifadaa-shard-00-00.69zq2.mongodb.net:27017,intifadaa-shard-00-01.69zq2.mongodb.net:27017,intifadaa-shard-00-02.69zq2.mongodb.net:27017/E_Learning_Platform?replicaSet=atlas-lhst4z-shard-0&ssl=true&authSource=admin',
+      'mongodb://E_Learning:E_Learning_1@ac-godgsxx-shard-00-00.tsojh1d.mongodb.net:27017,ac-godgsxx-shard-00-01.tsojh1d.mongodb.net:27017,ac-godgsxx-shard-00-02.tsojh1d.mongodb.net:27017/?replicaSet=atlas-mslkhi-shard-0&ssl=true&authSource=admin',
       {
         connectionName: 'eLearningDB', // For eLearning database
       },
     ),
     MongooseModule.forRoot(
-      'mongodb://Behz_92:Behz_9204@intifadaa-shard-00-00.69zq2.mongodb.net:27017,intifadaa-shard-00-01.69zq2.mongodb.net:27017,intifadaa-shard-00-02.69zq2.mongodb.net:27017/data_management?replicaSet=atlas-lhst4z-shard-0&ssl=true&authSource=admin',
+      'mongodb://E_Learning:E_Learning_1@ac-godgsxx-shard-00-00.tsojh1d.mongodb.net:27017,ac-godgsxx-shard-00-01.tsojh1d.mongodb.net:27017,ac-godgsxx-shard-00-02.tsojh1d.mongodb.net:27017/?replicaSet=atlas-mslkhi-shard-0&ssl=true&authSource=admin',
       {
         connectionName: 'dataManagementDB', // For data management database
       },
@@ -72,12 +72,11 @@ import { ReplyModule } from './Backend/replies/reply.module';
     ChatModule,
 
     ChatHistoryModule,
-     DiscussionModule,
-     ForumModule,
-     ThreadModule,
-     ReplyModule,
-     DiscussionModule
-
+    DiscussionModule,
+    ForumModule,
+    ThreadModule,
+    ReplyModule,
+    DiscussionModule,
   ],
   controllers: [AppController, InstructorController],
   providers: [AppService],

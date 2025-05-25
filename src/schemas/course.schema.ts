@@ -46,6 +46,8 @@ export class Course extends Document {
 
   @Prop({ required: true })
   image: string; // URL or path to the course image
+  @Prop({ default: false })
+  Point_Based: boolean; // If true, only instructors can access the course
 }
 
 export const CourseSchema = SchemaFactory.createForClass(Course);

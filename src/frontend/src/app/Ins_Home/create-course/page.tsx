@@ -14,6 +14,7 @@ const CreateCourse = () => {
     totalClasses: 0,
     courseContent: [],
     price: 0,
+    Point_Based: false,
   });
   const [profilePictureUrl, setprofilePictureUrl] = useState<string | null>(
     null,
@@ -26,10 +27,13 @@ const CreateCourse = () => {
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
     >,
   ) => {
-    const { name, value } = e.target;
+    const { name, type, value } = e.target;
     setFormData((prevData) => ({
       ...prevData,
-      [name]: value,
+      [name]:
+        type === 'checkbox' && e.target instanceof HTMLInputElement
+          ? e.target.checked
+          : value,
     }));
   };
 
@@ -52,9 +56,9 @@ const CreateCourse = () => {
       const token = sessionStorage.getItem('Ins_Token');
       if (!storedInstructor) throw new Error('Instructor data not found.');
       if (!token) throw new Error('Authorization token not found.');
-  
+
       const { email } = JSON.parse(storedInstructor);
-  
+
       const res = await fetch(
         `http://localhost:3000/instructor/${encodeURIComponent(email)}/create-course`,
         {
@@ -68,20 +72,19 @@ const CreateCourse = () => {
             image: profilePictureUrl, // Ensure this is set correctly in your state
             instructormail: email, // Instructor's email
           }),
-        }
+        },
       );
-  
+
       if (!res.ok) {
         throw new Error(`Failed to create course: ${res.statusText}`);
       }
-  
+
       alert('Course created successfully!');
       router.push('/Ins_Home'); // Redirect to the home page
     } catch (err: any) {
       alert(err.message || 'An unknown error occurred');
     }
   };
-  
 
   return (
     <div>
@@ -173,6 +176,15 @@ const CreateCourse = () => {
             accept="image/*"
             onChange={handleImageChange}
             required
+          />
+        </label>
+        <label>
+          Point-Based Course:
+          <input
+            type="checkbox"
+            name="Point_Based"
+            checked={formData.Point_Based}
+            onChange={handleInputChange}
           />
         </label>
 

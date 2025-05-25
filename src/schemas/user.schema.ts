@@ -81,6 +81,9 @@ export class User extends Document {
   @Prop({ default: 0 })
   GPA: number;
 
+  @Prop({ default: 0 })
+  Points: number;
+
   @Prop({
     type: [
       {

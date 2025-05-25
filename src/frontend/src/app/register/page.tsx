@@ -16,6 +16,7 @@ interface Course {
   notes: string[]; // Array of note IDs or content (you can adjust depending on the structure of the notes)
   price: number;
   image: string; // URL or path to the course image
+  Point_Based: boolean; // If true, only instructors can access the course
 }
 
 const RegisterPage = () => {
